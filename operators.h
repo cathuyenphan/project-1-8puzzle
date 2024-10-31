@@ -7,9 +7,9 @@
 
 using namespace std;
 
-vector<int> findBlank(vector<vector<int>> state) {
+vector<int> findBlank(vector<vector<int> > state) {
   // find the blank tile on puzzle
-  vector<int> coordinates = {};
+  vector<int> coordinates{};
 
   for(int i = 0; i < 3; i++)  {
     for(int j = 0; j < 3; j++)  {
@@ -24,7 +24,7 @@ vector<int> findBlank(vector<vector<int>> state) {
 
 }
 
-vector<vector<int>> swap(vector<vector<int>> state, int x, int y, int i, int j)  {
+vector<vector<int> > swap(vector<vector<int> > state, int x, int y, int i, int j)  {
   //swap two nodes
   int temp;
   temp = state[x][y];
@@ -35,7 +35,7 @@ vector<vector<int>> swap(vector<vector<int>> state, int x, int y, int i, int j) 
 
 };
 
-vector<vector<int>> moveDown(vector<vector<int>> puzzle)  {
+vector<vector<int> > moveDown(vector<vector<int> > puzzle)  {
   // move tile down
   vector<int> blank = findBlank(puzzle);                              // get coordinates of the blank space
   if(blank[0] == 0) {
@@ -49,7 +49,7 @@ vector<vector<int>> moveDown(vector<vector<int>> puzzle)  {
 
 };
 
-vector<vector<int>> moveUp(vector<vector<int>> puzzle)  {
+vector<vector<int> > moveUp(vector<vector<int> > puzzle)  {
   //move tile up
   vector<int> blank = findBlank(puzzle);
 
@@ -62,7 +62,7 @@ vector<vector<int>> moveUp(vector<vector<int>> puzzle)  {
   }
 };
 
-vector<vector<int>> moveRight(vector<vector<int>> puzzle)  {
+vector<vector<int> > moveRight(vector<vector<int> > puzzle)  {
   // move tile right
   vector<int> blank = findBlank(puzzle);
 
@@ -75,11 +75,15 @@ vector<vector<int>> moveRight(vector<vector<int>> puzzle)  {
   }
 };
 
-vector<vector<int>> moveLeft(vector<vector<int>> puzzle)  {
+vector<vector<int> > moveLeft(vector<vector<int> > puzzle)  {
   // move tile left
   vector<int> blank = findBlank(puzzle);
   if(blank[1] == 2) {
     return puzzle;
+  }
+  else  {
+    int tile_column = blank[1] + 1;
+    return swap(puzzle, blank[0], blank[1], blank[0], tile_column);
   }
   
 };

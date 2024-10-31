@@ -7,9 +7,9 @@
 
 using namespace std;
 
-const vector<vector<int>> goalState = {{1,2,3},{4,5,6},{7,8,9}};
+const vector<vector<int> > goalState = {{1,2,3},{4,5,6},{7,8,0}};
 
-int misplacedTile(vector<vector<int>> puzzle)  {
+int misplacedTile(vector<vector<int> > puzzle)  {
 
     int count = 0;
     for(int i = 0; i < 3; i++)  {
@@ -23,7 +23,7 @@ int misplacedTile(vector<vector<int>> puzzle)  {
     return count;       // the number of misplaced tiles
 }
 
-int euclideanDistance(vector<vector<int>> puzzle)  {
+int euclideanDistance(vector<vector<int> > puzzle)  {
 
     int distance = 0; 
     float temp = 0;

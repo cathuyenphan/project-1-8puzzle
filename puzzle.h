@@ -19,15 +19,15 @@ struct node  {
     int distanceToGoal = 0;                     // h(n)
     int total = 0;                              // F(n) = g(n) + h(n)
 
-    vector<vector<int>> puzzle;
-    node(vector<vector<int>> cur)   {           // if parameter is entire puzzle (initial state)
+    vector<vector<int> > puzzle;
+    node(vector<vector<int> > cur)   {           // initial state node
 
         puzzle = cur;      
         costToNode = 0; 
         distanceToGoal = 0;
 
     }
-    node(const node &newpuzzle) {               // if parameter is a node
+    node(const node &newpuzzle) {               // for expanding node
         puzzle = newpuzzle.puzzle;
 
         costToNode = newpuzzle.costToNode;
@@ -48,6 +48,13 @@ struct node  {
 };
 
 struct cheaperNode  {
+
+    bool operator()(const node& c1, const node& c2) {
+        if(c1.total > c2.total) {
+            return true;
+        }
+        return false;
+    }
 };
 
 #endif
