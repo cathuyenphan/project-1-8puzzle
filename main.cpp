@@ -9,9 +9,7 @@
 
 using namespace std;
 
-void printPuzzle(vector<vector<int> > puzzle);
 void solvePuzzle(vector<vector<int> > puzzle, int algoritm);
-vector<node> expandNode(node* cur);
 
 vector<node> visited;
 priority_queue <node, vector<node>, cheaperNode> priority; 
@@ -68,28 +66,7 @@ int main()  {
     cout << "choose algorithm" << endl;
     cin >> algorithm;
 
-    node* initial = new node(puzzle);
-    vector<node> children = expandNode(initial);
-    for(int i = 0; i < children.size(); i++)    {
-        cout << "child " << i << "'s: " << endl;
-
-        if(algorithm == 2)  {
-            cout << "state: " << endl;
-            printPuzzle(children[i].puzzle);                                           // misplaced tile heuristic
-            children[i].h_n = misplacedTile(children[i].puzzle);
-            cout << "h(n) = " << children[i].h_n << " ";
-        }
-        if(algorithm == 3)  {       
-            cout << "state: " << endl;
-            printPuzzle(children[i].puzzle);                                      // euclidean distance heuristic
-            children[i].h_n = euclideanDistance(children[i].puzzle);
-            cout << "h(n) = " << children[i].h_n << " ";
-        }
-
-        children[i].f_n = children[i].g_n + children[i].h_n; 
-        cout << "f(n) = " << children[i].f_n << " " << endl;                  
-    } 
-    
+    solvePuzzle(puzzle, algorithm);
 
 }
 
@@ -101,85 +78,155 @@ void printPuzzle(vector<vector<int> > puzzle)    {
         }
         cout << endl;
     }
+
+    cout << endl;
 }
 
-vector<node> expandNode(node* current)  {
+void traceSolution(node current)    {
+    
+    node copy = current;
+    stack<node> path;
+    path.push(copy);
 
-    vector<node> children;
-
-    node* c1 = new node(moveDown(current->puzzle));
-    if(c1->puzzle != current->puzzle)   {                       // make sure shift changes the puzzle
-        c1->g_n++;
-        children.push_back(*c1);
-        
+    while(copy.p != NULL)   {
+        copy = *copy.p;
+        path.push(copy);
     }
 
-    node* c2 = new node(moveUp(current->puzzle));
-    if(c2->puzzle != current->puzzle)   {
-        c2->g_n++;
-        children.push_back(*c2);
+    // out of loop means copy store the intitial state of puzzle
+    cout << "Expanding state" << endl;
+    printPuzzle(copy.puzzle);
+    path.pop();
+
+    while(!path.empty())  {
+        int g = path.top().g_n;
+        int h = path.top().h_n;
+
+        cout << "The best state to expand with g(n) = " << g << " and h(n) = " << h << " is..." << endl;
+        printPuzzle(path.top().puzzle);
+
+        path.pop();
     }
 
-    node* c3 = new node(moveRight(current->puzzle));
-    if(c3->puzzle != current->puzzle)   {
-        c3->g_n++;
-        children.push_back(*c3);
+}
+
+
+bool repeatedState(node *current, vector<node> visited)   {
+    for(long unsigned int i = 0; i < visited.size(); i++)   {
+        if(current->puzzle == visited[i].puzzle) {
+            return true;
+        }
     }
-
-    node* c4 = new node(moveLeft(current->puzzle));
-    if(c4->puzzle != current->puzzle) {
-        c4->g_n++;
-        children.push_back(*c4);
-    }
-
-    return children;                            // returns set of children expanded from the current node
-
+    return false;
 }
 
 void solvePuzzle(vector<vector<int> > puzzle, int algorithm)   {
 
-    int count = 0;                              // keeps track of the number of nodes expanded until solution is found
-    int maxNodes = 0;                           // keeps track of the max number of nodes in the queue at any time
-    int depth = 0;                              // keeps track of depth of search tree
+    int count = 0;                                                      // keeps track of the number of nodes expanded until solution is found
+    int maxNodes = 0;                                                   // keeps track of the max number of nodes in the queue at any time
+    int depth = 0;                                                      // keeps track of depth of search tree
 
     node initial(puzzle);
-    visited.push_back(initial);               // puts initial state into search tree
+    visited.push_back(initial);                                         // puts initial state into search tree
     priority.push(initial);
 
     while(priority.size() > 0)  {
 
-        node *current = new node(priority.top());        // next node to expand is the node on the top of priority queue
+        node *current = new node(priority.top());                           // next node to expand is the node on the top of priority queue
 
         if(priority.top().puzzle == goalState)  {
-            cout << "Goal!!!" << endl;
-            // print final message here...
+            depth = current->g_n;
+
+            traceSolution(priority.top());
+
+            cout << endl << "Goal!!!" << endl;
+            cout << "To solve this problem the search algorithm needed to expand a total of " << count << " nodes." << endl;
+            cout << "The maximum number of nodes in the queue at any one time: " << maxNodes << "." << endl;
+            cout << "The depth of the goal node was " << depth << "." << endl;
+            
             break;
         }
         else    { 
-            count++;                                    // going to expand this node, so update count                         
+            count++;                                                        // going to expand this node, so update count                         
 
-            visited.push_back(priority.top());          // already checked this node -> push into visited nodes
-            if(priority.size() > maxNodes)  {           // update max nodes in queue
+            visited.push_back(priority.top());                              // already checked this node -> push into visited nodes
+            if(priority.size() > maxNodes)  {                               // update max nodes in queue
                 maxNodes = priority.size();
             }           
             priority.pop();         
 
             // create children nodes
-            vector<node> children = expandNode(current);
+            node *c1 = new node(moveDown(current->puzzle), current->g_n + 1);
+            if(!repeatedState(c1, visited))   {                             // make sure node is not a repeated state
 
-            for(int i = 0; i < children.size(); i++)    {
-                if(algorithm == 2)  {                   // misplaced tile heuristic
-                    children[i].h_n = misplacedTile(children[i].puzzle);
+                if(algorithm == 2)  {
+                    c1->h_n = misplacedTile(c1->puzzle);
                 }
-                if(algorithm == 3)  {                   // euclidean distance heuristic
-                    children[i].h_n = euclideanDistance(children[i].puzzle);
+                if(algorithm == 3)  {
+                    c1->h_n = euclideanDistance(c1->puzzle);
                 }
+                c1->f_n = c1->g_n + c1->h_n;
 
-                children[i].f_n = children[i].g_n + children[i].h_n;                     
+                current->child1 = c1;
+                c1->p = current;
+                priority.push(*c1);
+
             }
+
+            node *c2 = new node(moveUp(current->puzzle), current->g_n + 1);
+            if(!repeatedState(c2, visited))   {
+
+                if(algorithm == 2)  {
+                    c2->h_n = misplacedTile(c2->puzzle);
+                }
+                if(algorithm == 3)  {
+                    c2->h_n = euclideanDistance(c2->puzzle);
+                }
+                c2->f_n = c2->g_n + c2->h_n;
+
+                current->child2 = c2;
+                c2->p = current;
+                priority.push(*c2);
+            }
+
+            node *c3 = new node(moveRight(current->puzzle), current->g_n + 1);
+            if(!repeatedState(c3, visited))   {
+
+                if(algorithm == 2)  {
+                    c3->h_n = misplacedTile(c3->puzzle);
+                }
+                if(algorithm == 3)  {
+                    c3->h_n = euclideanDistance(c3->puzzle);
+                }
+                c3->f_n = c3->g_n + c3->h_n;
+
+                current->child3 = c3;
+                c3->p = current;
+                priority.push(*c3);
+            }
+            
+
+            node *c4 = new node(moveLeft(current->puzzle), current->g_n + 1);
+            if(!repeatedState(c4, visited)) {
+
+                if(algorithm == 2)  {
+                    c4->h_n = misplacedTile(c4->puzzle);
+                }
+                if(algorithm == 3)  {
+                    c4->h_n = euclideanDistance(c4->puzzle);
+                }
+                c4->f_n = c4->g_n + c4->h_n;
+
+                current->child4 = c4;
+                c4->p = current;
+                priority.push(*c4);
+            }
+            
 
         }
 
     }
+
+    
     
 }
