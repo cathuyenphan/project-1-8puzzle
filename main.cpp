@@ -64,14 +64,32 @@ int main()  {
 
     }
 
+    int algorithm;
+    cout << "choose algorithm" << endl;
+    cin >> algorithm;
 
     node* initial = new node(puzzle);
     vector<node> children = expandNode(initial);
     for(int i = 0; i < children.size(); i++)    {
-        cout << "child node " << i << ":" << endl;
-        printPuzzle(children[i].puzzle);
-        cout << endl;
-    }
+        cout << "child " << i << "'s: " << endl;
+
+        if(algorithm == 2)  {
+            cout << "state: " << endl;
+            printPuzzle(children[i].puzzle);                                           // misplaced tile heuristic
+            children[i].h_n = misplacedTile(children[i].puzzle);
+            cout << "h(n) = " << children[i].h_n << " ";
+        }
+        if(algorithm == 3)  {       
+            cout << "state: " << endl;
+            printPuzzle(children[i].puzzle);                                      // euclidean distance heuristic
+            children[i].h_n = euclideanDistance(children[i].puzzle);
+            cout << "h(n) = " << children[i].h_n << " ";
+        }
+
+        children[i].f_n = children[i].g_n + children[i].h_n; 
+        cout << "f(n) = " << children[i].f_n << " " << endl;                  
+    } 
+    
 
 }
 
@@ -91,33 +109,34 @@ vector<node> expandNode(node* current)  {
 
     node* c1 = new node(moveDown(current->puzzle));
     if(c1->puzzle != current->puzzle)   {                       // make sure shift changes the puzzle
+        c1->g_n++;
         children.push_back(*c1);
-        c1->costToNode++;
+        
     }
 
     node* c2 = new node(moveUp(current->puzzle));
     if(c2->puzzle != current->puzzle)   {
+        c2->g_n++;
         children.push_back(*c2);
-        c2->costToNode++;
     }
 
     node* c3 = new node(moveRight(current->puzzle));
     if(c3->puzzle != current->puzzle)   {
+        c3->g_n++;
         children.push_back(*c3);
-        c3->costToNode++;
     }
 
     node* c4 = new node(moveLeft(current->puzzle));
     if(c4->puzzle != current->puzzle) {
+        c4->g_n++;
         children.push_back(*c4);
-        c4->costToNode++;
     }
 
     return children;                            // returns set of children expanded from the current node
 
 }
 
-void solvePuzzle(vector<vector<int> > puzzle, int algorthm)   {
+void solvePuzzle(vector<vector<int> > puzzle, int algorithm)   {
 
     int count = 0;                              // keeps track of the number of nodes expanded until solution is found
     int maxNodes = 0;                           // keeps track of the max number of nodes in the queue at any time
@@ -146,8 +165,18 @@ void solvePuzzle(vector<vector<int> > puzzle, int algorthm)   {
             priority.pop();         
 
             // create children nodes
+            vector<node> children = expandNode(current);
 
+            for(int i = 0; i < children.size(); i++)    {
+                if(algorithm == 2)  {                   // misplaced tile heuristic
+                    children[i].h_n = misplacedTile(children[i].puzzle);
+                }
+                if(algorithm == 3)  {                   // euclidean distance heuristic
+                    children[i].h_n = euclideanDistance(children[i].puzzle);
+                }
 
+                children[i].f_n = children[i].g_n + children[i].h_n;                     
+            }
 
         }
 
